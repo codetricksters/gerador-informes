@@ -55,34 +55,30 @@
         .header h3,
         .header h4 {
             margin: 3px 0;
-            font-weight: bold;
         }
 
         .section {
-            border: 1px solid #000;
             margin-bottom: 10px;
         }
 
         .section-title {
-            font-weight: bold;
             padding: 4px 6px;
-            border-bottom: 1px solid #000;
+            border: none;
             font-size: 11px;
         }
 
         .row {
-            display: flex;
-            border-bottom: 1px solid #000;
-        }
-
-        .row:last-child {
-            border-bottom: none;
+            display: table;
+            width: 100%;
+            border: 1px solid #000;
+            box-sizing: border-box;
         }
 
         .col {
+            display: table-cell;
             padding: 4px 6px;
             border-right: 1px solid #000;
-            flex: 1;
+            vertical-align: top;
         }
 
         .col:last-child {
@@ -90,7 +86,7 @@
         }
 
         .col-cnpj {
-            flex: 0 0 150px;
+            width: 150px;
         }
 
         .label {
@@ -101,7 +97,6 @@
 
         .value {
             font-size: 12px;
-            font-weight: bold;
             margin-top: 2px;
             display: block;
         }
@@ -114,7 +109,6 @@
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            border-style: hidden;
             text-align: center;
         }
 
@@ -126,15 +120,21 @@
         }
 
         table.data-table th {
-            font-weight: bold;
+            font-weight: lighter;
         }
 
         table.data-table td.text-left {
             text-align: left;
+            white-space: nowrap;
         }
 
         table.data-table td.text-right {
             text-align: right;
+        }
+
+        td {
+            padding: 0;
+            margin: 0;
         }
 
         .footer-note {
@@ -143,12 +143,42 @@
             justify-content: space-between;
             margin-top: 5px;
         }
-        .header .header-cell{
-            border: none;
-            border-right: 1px solid;
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .header .header-image{
-            border: none;
+
+        .header-table td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .header-table td:last-child {
+            border-right: none;
+        }
+
+        .header-col-img {
+            width: 10%;
+            border-right: none;
+        }
+
+        .header-col-img img {
+            width: 100%;
+            max-width: 80px;
+            padding: 4px;
+        }
+
+        .header-col-mid {
+            width: 30%;
+            border-left: none;
+        }
+
+        .header-col-main {
+            width: 50%;
+            border-left: 1px solid;
         }
     </style>
 </head>
@@ -157,27 +187,20 @@
 
     <div class="page">
         <div class="header">
-            <table class="data-table">
+            <table class="header-table">
                 <tr>
-                    <td rowspan="2" class="header-image" style="width: 15%;">
-                        {{img}}
+                    <td class="header-col-img">
+                        <img src="Logo_Receita_Federal_do_Brasil.png">
                     </td>
-                    <td class="header-cell" style="width: 35%;">
-                        <h3>Ministério da Fazenda</h3>
+                    <td class="header-col-mid">
+                        <p>Ministério da Fazenda</p>
+                        <p>Secretaria Especial da Receita Federal do Brasil</p>
                     </td>
-                    <td class="header-cell" style="border-bottom: 1px solid;">
-                        <h3>COMPROVANTE ANUAL DE RETENÇÃO DE CSLL, COFINS E PIS/PASEP (Lei nº 10.833/2003, art. 30)</h3>
-                    </td>
-
-                <tr>
-                    <td class="header-cell">
-                        <h3>Secretaria Especial da Receita Federal do Brasil</h3>
-                    </td>
-                    <td class="header-cell">
-                        <h3>Ano-calendário de {{ ano_calendario }}</h3>
+                    <td class="header-col-main">
+                        <p>COMPROVANTE ANUAL DE RETENÇÃO DE CSLL, COFINS E PIS/PASEP (Lei nº 10.833/2003, art. 30)</p>
+                        <p>Ano-calendário de {{ ano_calendario }}</p>
                     </td>
                 </tr>
-
             </table>
         </div>
 
@@ -253,7 +276,7 @@
                     <span class="label">Nome</span>
                     <span class="value">{{ nome_responsavel }}</span>
                 </div>
-                <div class="col" style="flex: 0 0 100px;">
+                <div class="col" style="width: 100px;">
                     <span class="label">Data</span>
                     <span class="value">{{ data_emissao }}</span>
                 </div>
@@ -272,14 +295,22 @@
 
     <div class="page">
         <div class="header">
-            <h3>MINISTÉRIO DA FAZENDA</h3>
-            <h3>Secretaria Especial da Receita Federal do Brasil</h3>
-            <br>
-            <h4>COMPROVANTE ANUAL DE RENDIMENTOS PAGOS OU CREDITADOS E DE RETENÇÃO DE</h4>
-            <h4>IMPOSTO DE RENDA NA FONTE - PESSOA JURÍDICA</h4>
-            <h4>Ano-calendário de {{ ano_calendario }}</h4>
+            <table class="header-table">
+                <tr>
+                    <td class="header-col-img">
+                        <img src="Armas_nacionais_pb.jpg">
+                    </td>
+                    <td class="header-col-mid">
+                        <p>Ministério da Fazenda</p>
+                        <p>Secretaria Especial da Receita Federal do Brasil</p>
+                    </td>
+                    <td class="header-col-main">
+                        <h4>COMPROVANTE ANUAL DE RENDIMENTOS PAGOS OU CREDITADOS E DE RETENÇÃO DE IMPOSTO DE RENDA NA FONTE - PESSOA JURÍDICA</h4>
+                        <p>Ano-calendário de {{ ano_calendario }}</p>
+                    </td>
+                </tr>
+            </table>
         </div>
-
         <div class="section">
             <div class="section-title">1. FONTE PAGADORA</div>
             <div class="row">
@@ -354,7 +385,7 @@
                     <span class="label">Nome</span>
                     <span class="value">{{ nome_responsavel }}</span>
                 </div>
-                <div class="col" style="flex: 0 0 100px;">
+                <div class="col" style="width: 100px;">
                     <span class="label">Data</span>
                     <span class="value">{{ data_emissao }}</span>
                 </div>
@@ -367,7 +398,7 @@
 
         <div class="footer-note">
             <span>Aprovado pela IN/SRF n° 119/2000</span>
-            <span>Pág. 1</span>
+            <span>Pág. 2</span>
         </div>
     </div>
 
