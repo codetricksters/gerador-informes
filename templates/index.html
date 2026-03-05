@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Informes</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-size: 13px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #1a6aab;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: #155a92; }
+        button:disabled { background: #999; cursor: not-allowed; }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .sheet-info {
+            margin-top: 28px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .sheet-info p {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .sheet-info table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .sheet-info table th {
+            background: #f0f0f0;
+            padding: 5px 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .sheet-info table td {
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            color: #444;
+        }
+
+        .sheet-name {
+            display: inline-block;
+            background: #e8f0fb;
+            color: #1a6aab;
+            font-weight: bold;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        details { margin-bottom: 10px; }
+        summary { cursor: pointer; font-size: 12px; font-weight: bold; color: #1a6aab; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Gerador de Informes</h1>
+        <p class="subtitle">Carregue um arquivo Excel para gerar os PDFs de retenção e rendimentos.</p>
+
+        <form id="uploadForm" method="POST" action="/generate" enctype="multipart/form-data">
+            <label for="excel_file">Arquivo Excel (.xlsx)</label>
+            <input type="file" id="excel_file" name="excel_file" accept=".xlsx">
+            <button type="submit" id="submitBtn">Gerar PDFs</button>
+        </form>
+
+        <div class="loading" id="loading">Gerando PDFs, aguarde...</div>
+
+        <div class="sheet-info">
+            <p>Estrutura esperada do arquivo Excel</p>
+
+            <details open>
+                <summary><span class="sheet-name">Dados</span> — um registro por fornecedora</summary>
+                <table>
+                    <tr><th>Coluna</th><th>Exemplo</th></tr>
+                    <tr><td>ano_calendario</td><td>2025</td></tr>
+                    <tr><td>nome_fonte_pagadora</td><td>EMPRESA S.A.</td></tr>
+                    <tr><td>cnpj_fonte_pagadora</td><td>12.345.678/0001-99</td></tr>
+                    <tr><td>nome_fornecedora</td><td>FORNECEDOR LTDA</td></tr>
+                    <tr><td>cnpj_fornecedora</td><td>98.765.432/0001-11</td></tr>
+                    <tr><td>informacoes_complementares</td><td>(opcional)</td></tr>
+                    <tr><td>nome_responsavel</td><td>JOÃO DA SILVA</td></tr>
+                    <tr><td>data_emissao</td><td>05/03/2026</td></tr>
+                </table>
+            </details>
+
+            <details>
+                <summary><span class="sheet-name">Retencoes</span> — uma linha por mês/código</summary>
+                <table>
+                    <tr><th>Coluna</th><th>Exemplo</th></tr>
+                    <tr><td>cnpj_fornecedora</td><td>98.765.432/0001-11</td></tr>
+                    <tr><td>mes</td><td>Jan</td></tr>
+                    <tr><td>codigo</td><td>5952</td></tr>
+                    <tr><td>valor_pago</td><td>150000.00</td></tr>
+                    <tr><td>valor_retido</td><td>6975.00</td></tr>
+                </table>
+            </details>
+
+            <details>
+                <summary><span class="sheet-name">Rendimentos</span> — uma linha por mês/código</summary>
+                <table>
+                    <tr><th>Coluna</th><th>Exemplo</th></tr>
+                    <tr><td>cnpj_fornecedora</td><td>98.765.432/0001-11</td></tr>
+                    <tr><td>mes</td><td>Jan</td></tr>
+                    <tr><td>codigo</td><td>1708</td></tr>
+                    <tr><td>descricao</td><td>Remuneração de serviços...</td></tr>
+                    <tr><td>valor_rendimento</td><td>150000.00</td></tr>
+                    <tr><td>valor_imposto</td><td>2250.00</td></tr>
+                </table>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function () {
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
