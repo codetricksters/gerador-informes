@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Input/output files
+data.json
+report.pdf
