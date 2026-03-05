@@ -11,4 +11,5 @@ wheels/
 
 # Input/output files
 data.json
+sample.xlsx
 *.pdf
