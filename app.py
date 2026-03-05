@@ -52,48 +52,41 @@ def generate():
     if not file:
         return 'Nenhum arquivo enviado.', 400
 
-    xl = pd.ExcelFile(file)
-    df_dados = xl.parse('Dados')
-    df_retencoes = xl.parse('Retencoes')
-    df_rendimentos = xl.parse('Rendimentos')
-
-    df_retencoes['cnpj_fornecedora'] = df_retencoes['cnpj_fornecedora'].astype(str)
-    df_rendimentos['cnpj_fornecedora'] = df_rendimentos['cnpj_fornecedora'].astype(str)
+    df = pd.read_excel(file, sheet_name='Informes')
+    df['cnpj_fornecedora'] = df['cnpj_fornecedora'].astype(str)
 
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for _, row in df_dados.iterrows():
-            cnpj_key = str(row['cnpj_fornecedora'])
-            ret = df_retencoes[df_retencoes['cnpj_fornecedora'] == cnpj_key]
-            rend = df_rendimentos[df_rendimentos['cnpj_fornecedora'] == cnpj_key]
+        for cnpj_key, group in df.groupby('cnpj_fornecedora', sort=False):
+            first = group.iloc[0]
 
             dados = {
-                'ano_calendario': safe_str(row['ano_calendario']),
-                'nome_fonte_pagadora': safe_str(row['nome_fonte_pagadora']),
-                'cnpj_fonte_pagadora': safe_str(row['cnpj_fonte_pagadora']),
-                'nome_fornecedora': safe_str(row['nome_fornecedora']),
-                'cnpj_fornecedora': cnpj_key,
-                'informacoes_complementares': safe_str(row.get('informacoes_complementares', ''), ''),
-                'nome_responsavel': safe_str(row['nome_responsavel']),
-                'data_emissao': format_date(row['data_emissao']),
+                'ano_calendario': safe_str(first['ano_calendario']),
+                'nome_fonte_pagadora': safe_str(first['nome_fonte_pagadora']),
+                'cnpj_fonte_pagadora': safe_str(first['cnpj_fonte_pagadora']),
+                'nome_fornecedora': safe_str(first['nome_fornecedora']),
+                'cnpj_fornecedora': safe_str(first['cnpj_fornecedora']),
+                'informacoes_complementares': safe_str(first.get('informacoes_complementares', ''), ''),
+                'nome_responsavel': safe_str(first['nome_responsavel']),
+                'data_emissao': format_date(first['data_emissao']),
                 'tabela_retencoes': [
                     {
                         'mes': safe_str(r['mes']),
-                        'codigo': safe_str(r['codigo']),
+                        'codigo': safe_str(r['codigo_retencao']),
                         'valor_pago': format_currency(r['valor_pago']),
                         'valor_retido': format_currency(r['valor_retido']),
                     }
-                    for _, r in ret.iterrows()
+                    for _, r in group.iterrows()
                 ],
                 'tabela_rendimentos': [
                     {
                         'mes': safe_str(r['mes']),
-                        'codigo': safe_str(r['codigo']),
-                        'descricao': safe_str(r['descricao']),
+                        'codigo': safe_str(r['codigo_rendimento']),
+                        'descricao': safe_str(r['descricao_rendimento']),
                         'valor_rendimento': format_currency(r['valor_rendimento']),
                         'valor_imposto': format_currency(r['valor_imposto']),
                     }
-                    for _, r in rend.iterrows()
+                    for _, r in group.iterrows()
                 ],
             }
 
