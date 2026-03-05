@@ -11,4 +11,4 @@ wheels/
 
 # Input/output files
 data.json
-report.pdf
+*.pdf
