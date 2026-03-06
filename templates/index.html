@@ -75,6 +75,16 @@
             color: #555;
         }
 
+        .error {
+            display: none;
+            margin-top: 16px;
+            padding: 10px;
+            background: #fff0f0;
+            border: 1px solid #f5c0c0;
+            color: #c0392b;
+            font-size: 12px;
+        }
+
         .sheet-info {
             margin-top: 28px;
             border-top: 1px solid #eee;
@@ -133,6 +143,7 @@
         </form>
 
         <div class="loading" id="loading">Gerando PDFs, aguarde...</div>
+        <div class="error" id="error"></div>
 
         <div class="sheet-info">
             <p>Estrutura esperada do arquivo Excel</p>
@@ -161,9 +172,61 @@
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function () {
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('loading').style.display = 'block';
+        const form      = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading   = document.getElementById('loading');
+        const error     = document.getElementById('error');
+
+        // Intercept the native form submission so we can control the button state
+        // after the server responds. A normal form submit would navigate away or
+        // (for file downloads) leave the page in place with no way to know when
+        // the response arrived — keeping the button disabled forever.
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Reset any previous error and show the loading indicator
+            error.style.display = 'none';
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+
+            try {
+                // Send the form data (including the Excel file) to the server
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: new FormData(form),
+                });
+
+                if (!response.ok) {
+                    // Server returned a non-2xx status — read the message and show it
+                    const msg = await response.text();
+                    error.textContent = 'Erro: ' + msg;
+                    error.style.display = 'block';
+                    return;
+                }
+
+                // Convert the ZIP response to a blob and trigger a browser download
+                // by creating a temporary <a> element with an object URL
+                const blob = await response.blob();
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                a.href     = url;
+                a.download = 'informes.zip';
+                a.click();
+
+                // Release the object URL now that the download has been triggered
+                URL.revokeObjectURL(url);
+
+            } catch (err) {
+                // Network-level failure (server unreachable, connection dropped, etc.)
+                error.textContent = 'Erro de conexão: ' + err.message;
+                error.style.display = 'block';
+
+            } finally {
+                // Always re-enable the button and hide the loading indicator,
+                // regardless of whether the request succeeded or failed
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
         });
     </script>
 </body>
