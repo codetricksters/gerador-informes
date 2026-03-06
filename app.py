@@ -37,8 +37,12 @@ def format_date(value):
     return str(value)
 
 
+GROUP_COLS = ['ano_calendario', 'nome_fonte_pagadora', 'cnpj_fonte_pagadora',
+              'nome_fornecedora', 'cnpj_fornecedora']
+
+
 def sanitize_filename(name):
-    return re.sub(r'[^\w\s\-]', '_', name).strip()
+    return re.sub(r'[^\w\s\-]', '_', str(name)).strip()
 
 
 @app.route('/')
@@ -57,8 +61,10 @@ def generate():
 
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for cnpj_key, group in df.groupby('cnpj_fornecedora', sort=False):
+        for group_key, group in df.groupby(GROUP_COLS, sort=False):
             first = group.iloc[0]
+            retencoes = group[group['tipo'] == 'retencao']
+            rendimentos = group[group['tipo'] == 'rendimento']
 
             dados = {
                 'ano_calendario': safe_str(first['ano_calendario']),
@@ -72,21 +78,21 @@ def generate():
                 'tabela_retencoes': [
                     {
                         'mes': safe_str(r['mes']),
-                        'codigo': safe_str(r['codigo_retencao']),
-                        'valor_pago': format_currency(r['valor_pago']),
+                        'codigo': safe_str(r['codigo']),
+                        'valor_pago': format_currency(r['valor']),
                         'valor_retido': format_currency(r['valor_retido']),
                     }
-                    for _, r in group.iterrows()
+                    for _, r in retencoes.iterrows()
                 ],
                 'tabela_rendimentos': [
                     {
                         'mes': safe_str(r['mes']),
-                        'codigo': safe_str(r['codigo_rendimento']),
-                        'descricao': safe_str(r['descricao_rendimento']),
-                        'valor_rendimento': format_currency(r['valor_rendimento']),
-                        'valor_imposto': format_currency(r['valor_imposto']),
+                        'codigo': safe_str(r['codigo']),
+                        'descricao': safe_str(r['descricao']),
+                        'valor_rendimento': format_currency(r['valor']),
+                        'valor_imposto': format_currency(r['valor_retido']),
                     }
-                    for _, r in group.iterrows()
+                    for _, r in rendimentos.iterrows()
                 ],
             }
 
@@ -94,9 +100,7 @@ def generate():
             html = HTML(string=html_string, base_url=os.path.abspath(TEMPLATES_DIR))
             pdf_bytes = html.write_pdf()
 
-            nome_fonte = sanitize_filename(dados['nome_fonte_pagadora'])
-            nome_forn = sanitize_filename(dados['nome_fornecedora'])
-            filename = f"{nome_fonte}-{nome_forn}.pdf"
+            filename = '-'.join(sanitize_filename(k) for k in group_key) + '.pdf'
             zf.writestr(filename, pdf_bytes)
 
     zip_buffer.seek(0)
