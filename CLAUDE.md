@@ -22,6 +22,27 @@ flask --app app run
 uv run --with pytest pytest test_app.py -v
 ```
 
+## Docker
+
+```bash
+# Build the image
+docker build -t gerador-informes:latest .
+
+# Run the container (app available at http://localhost:5000)
+docker run -p 5000:5000 gerador-informes:latest
+```
+
+The image is based on `python:3.12-slim` (Debian Trixie). WeasyPrint system dependencies
+(`libpango`, `libcairo2`, `libpangocairo`, etc.) are installed via apt. Python dependencies
+are installed with `uv pip install --system` from `pyproject.toml`.
+
+On WSL2 without Docker Desktop integration, use the Windows binary directly:
+
+```bash
+"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe" build -t gerador-informes:latest "$(wslpath -w .)"
+"/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe" run -p 5000:5000 gerador-informes:latest
+```
+
 ## Architecture
 
 This project has two entry points that share the same Jinja2 template and WeasyPrint rendering pipeline:
